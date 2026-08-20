@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFM Exam Trainer</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171e2e; --panel2:#1f2839; --border:#2a3550;
+    --text:#e8ecf5; --muted:#9aa7c2; --accent:#5b8def; --accent2:#7c5cff;
+    --good:#33c17f; --bad:#e5546b; --warn:#e5b93a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:linear-gradient(160deg,#0f1420,#141b2b 60%,#101625);color:var(--text);min-height:100vh;}
+  .wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px;}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  h1{font-size:1.3rem;margin:0;letter-spacing:.2px;}
+  .badge{font-size:.72rem;color:var(--muted);border:1px solid var(--border);padding:3px 8px;border-radius:20px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:520px){.grid{grid-template-columns:1fr;}}
+  .cat{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);
+    border-radius:12px;padding:10px 12px;cursor:pointer;user-select:none;}
+  .cat input{accent-color:var(--accent);width:16px;height:16px;}
+  .cat .n{margin-left:auto;color:var(--muted);font-size:.8rem;}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  button{font-family:inherit;font-size:.95rem;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;
+    background:var(--accent);color:white;font-weight:600;transition:transform .08s ease, filter .15s ease;}
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:scale(.97);}
+  button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  select,input[type=number]{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.9rem;}
+  label.field{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted);}
+  .modechoice{display:flex;gap:12px;margin-top:6px;}
+  .modebtn{flex:1;padding:16px;border-radius:14px;border:1px solid var(--border);background:var(--panel2);
+    cursor:pointer;text-align:left;transition:.15s;}
+  .modebtn:hover{border-color:var(--accent);}
+  .modebtn.active{border-color:var(--accent);background:linear-gradient(135deg,rgba(91,141,239,.18),rgba(124,92,255,.12));}
+  .modebtn h3{margin:0 0 4px;font-size:1rem;}
+  .modebtn p{margin:0;font-size:.8rem;color:var(--muted);}
+  .qmeta{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.8rem;margin-bottom:10px;}
+  .progressbar{height:6px;border-radius:6px;background:var(--panel2);overflow:hidden;margin-bottom:16px;}
+  .progressbar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s;}
+  .qtext{font-size:1.08rem;line-height:1.5;margin-bottom:16px;white-space:pre-wrap;}
+  .opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--border);
+    color:var(--text);border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;font-size:.95rem;
+    line-height:1.4;transition:.12s;}
+  .opt:hover{border-color:var(--accent);}
+  .opt.correct{background:rgba(51,193,127,.18);border-color:var(--good);}
+  .opt.wrong{background:rgba(229,84,107,.18);border-color:var(--bad);}
+  .opt.disabled{cursor:default;}
+  .opt .lab{font-weight:700;margin-right:8px;color:var(--accent);}
+  .feedback{margin-top:6px;padding:12px 14px;border-radius:12px;font-size:.88rem;line-height:1.5;}
+  .feedback.good{background:rgba(51,193,127,.12);border:1px solid rgba(51,193,127,.4);color:#8fe3bb;}
+  .feedback.bad{background:rgba(229,84,107,.12);border:1px solid rgba(229,84,107,.4);color:#f2a5b2;}
+  .tag{display:inline-block;font-size:.68rem;background:var(--panel2);color:var(--muted);border:1px solid var(--border);
+    padding:2px 8px;border-radius:20px;margin-bottom:8px;}
+  .score-big{font-size:3rem;font-weight:800;text-align:center;margin:10px 0;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .score-sub{text-align:center;color:var(--muted);margin-bottom:20px;}
+  .reviewitem{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--panel2);}
+  .reviewitem .q{font-size:.9rem;margin-bottom:8px;}
+  .reviewitem .ans{font-size:.83rem;color:var(--muted);}
+  .reviewitem .ans.wrong{color:var(--bad);}
+  .reviewitem .ans.right{color:var(--good);}
+  .statrow{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border);}
+  .statrow:last-child{border-bottom:none;}
+  .toplink{color:var(--muted);font-size:.85rem;cursor:pointer;text-decoration:underline;}
+  footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:30px;}
+  .hidden{display:none !important;}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎓 CFM Exam Trainer</h1>
+    <span class="badge" id="headerBadge">Setup</span>
+  </header>
+
+  <!-- SETUP SCREEN -->
+  <div id="screenSetup">
+    <div class="card">
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:10px;">Choose a mode</div>
+      <div class="modechoice">
+        <div class="modebtn active" id="modeTraining" onclick="selectMode('training')">
+          <h3>📘 Training</h3>
+          <p>See the correct answer + explanation right after each question. Best for memorizing.</p>
+        </div>
+        <div class="modebtn" id="modeExam" onclick="selectMode('exam')">
+          <h3>📝 Exam</h3>
+          <p>Answer a full set with no hints, then get your score and a full review.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:10px;">Topics to include</div>
+      <div class="grid" id="catList"></div>
+      <div class="btnrow">
+        <button class="ghost" onclick="toggleAllCats(true)">Select all</button>
+        <button class="ghost" onclick="toggleAllCats(false)">Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <label class="field">Number of questions
+          <select id="qCount">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="40">40</option>
+            <option value="9999">All available</option>
+          </select>
+        </label>
+        <label class="field">Question order
+          <select id="qOrder">
+            <option value="shuffle" selected>Shuffled</option>
+            <option value="sequential">In order</option>
+          </select>
+        </label>
+      </div>
+      <div class="checkline">
+        <input type="checkbox" id="focusWeak" style="width:16px;height:16px;accent-color:var(--accent);">
+        <label for="focusWeak">Prioritize questions I've gotten wrong before</label>
+      </div>
+      <div class="btnrow">
+        <button onclick="startSession()">Start ▶</button>
+        <button class="secondary" onclick="showStats()">📊 My Stats</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS SCREEN -->
+  <div id="screenStats" class="hidden">
+    <div class="card">
+      <h3 style="margin-top:0;">Your Progress</h3>
+      <div id="statsBody"></div>
+      <div class="btnrow">
+        <button class="secondary" onclick="backToSetup()">← Back</button>
+        <button class="ghost" onclick="resetStats()">Reset all progress</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screenQuiz" class="hidden">
+    <div class="qmeta">
+      <span id="qIndexLabel">Question 1/20</span>
+      <span id="qScoreLabel">Score: 0/0</span>
+    </div>
+    <div class="progressbar"><div id="progressFill" style="width:0%"></div></div>
+    <div class="card">
+      <span class="tag" id="qCatTag">Category</span>
+      <div class="qtext" id="qText">...</div>
+      <div id="qOptions"></div>
+      <div id="qFeedback"></div>
+      <div class="btnrow">
+        <button id="nextBtn" class="hidden" onclick="nextQuestion()">Next ▶</button>
+        <button class="ghost" onclick="quitSession()">Quit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screenResults" class="hidden">
+    <div class="card">
+      <div class="score-big" id="resultScore">0%</div>
+      <div class="score-sub" id="resultSub">You got 0 of 0 correct</div>
+      <div class="btnrow" style="justify-content:center;">
+        <button onclick="startSession()">🔁 Try again</button>
+        <button class="secondary" onclick="backToSetup()">← Setup</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Review</h3>
+      <div id="reviewList"></div>
+    </div>
+  </div>
+
+  <footer>CFM Trainer · built from your uploaded study materials · progress saved locally in this browser</footer>
+</div>
+
+<script>
+/* ============================= QUESTION BANK ============================= */
+const CATS = {
+  tech:  "Technology (IWMS/CMMS/CAFM/BAS/BIM)",
+  bsckpi:"BSC & KPIs",
+  re:    "Real Estate",
+  ops:   "FCI / LOTO / ISO / SWOT / LCC",
+  fin:   "Finance & Budgeting",
+  proc:  "Procurement & Contracts"
+};
+
+const QUESTIONS = [
+/* ---------------- TECHNOLOGY (IWMS/CMMS/CAFM/BAS/BIM/HVAC) ---------------- */
+{cat:"tech", q:"What does IWMS stand for?", opts:["Internal Workforce Management System","Integrated Workplace Management System","Industrial Workspace Monitoring Software","Integrated Work Maintenance Suite"], a:1},
+{cat:"tech", q:"What is an Integrated Workplace Management System (IWMS)?", opts:["An energy-efficient tool to operate HVAC systems.","Requires a BAS system to be in place.","An enterprise-level software platform that facilitates integration of data.","Must be replaced or updated every 5 years to remain viable."], a:2},
+{cat:"tech", q:"What is the greatest benefit to implementing an IWMS?", opts:["It will make the board members happy.","The building floor plans will all be in one place.","It will improve customer service.","The building systems will no longer need to be monitored."], a:2},
+{cat:"tech", q:"What is the most important feature of an IWMS?", opts:["Use of software that allows ease of use.","Use of standards that allow integration.","Use of hardware that allows mobility.","A dedicated help desk."], a:1},
+{cat:"tech", q:"What may be impacted if requirements aren't captured correctly at the beginning of an IWMS implementation?", opts:["Cost and schedule","Temperature control and cost","Special relations and utilizing color","Only the software license fee"], a:0},
+{cat:"tech", q:"A building automation system (BAS) is also known by which other names?", opts:["ERP and CRM","BMS and BACS","IWMS and CAFM","GIS and BIM"], a:1},
+{cat:"tech", q:"Which system is a specialized function of BAS that monitors energy use, analyzes it, and can manage demand?", opts:["EMS (Energy Management System)","CMMS","GIS","AIDC"], a:0},
+{cat:"tech", q:"What functionality enables a BAS to support energy management during peak demand periods?", opts:["Thermal coupling","Capacity management","Load shedding","Cycle management"], a:2},
+{cat:"tech", q:"What best describes a Building Automation System (BAS)?", opts:["A system supporting two-way communication between controllers and devices, automated decisions, and analysis.","A one-way control mechanism for multiple core building systems.","A system that integrates various FM functions including security and space metrics.","A system that does not operate third-party systems."], a:0},
+{cat:"tech", q:"Your company operates a Web-based CMMS but struggles with service quality across its facilities. What is the best way to address the issue?", opts:["Select one facility for improvement and use it as a benchmark.","Use the CMMS data to identify service delivery processes that need improvement.","Retrain service delivery staff on efficient CMMS use.","Have each facility manager identify their own improvement initiatives."], a:1},
+{cat:"tech", q:"What is used to control lighting, HVAC, and other building systems directly?", opts:["Building Automation Systems (BAS)","Geographical Information Systems (GIS)","Computer-Aided Maintenance Management Systems (CMMS)","Building Information Modelling (BIM)"], a:0},
+{cat:"tech", q:"The BAS experienced a power loss and is back online. From a remote login, indoor temperatures appear warmer than the settings. What should you do?", opts:["Lower the temperature set points to cool the building faster.","Call an onsite occupant to verify space temperatures.","Dispatch staff to physically check all equipment for proper operation.","Recommend installing a generator for future outages."], a:2},
+{cat:"tech", q:"What does CAFM stand for?", opts:["Computerized Assistant Facility Management","Certified Associated Facility Manager","Computer-Aided Facility Management","Corporate Asset & Facility Model"], a:2},
+{cat:"tech", q:"How can Building Information Modeling (BIM) be used for emergency preparedness?", opts:["It provides first responders with the names of all occupants.","It is not useful for emergency preparedness.","It creates a virtual environment of the building for emergency personnel.","It automatically calls emergency services."], a:2},
+{cat:"tech", q:"A client's annual business review reveals HVAC comfort dissatisfaction requiring a major, previously unplanned capital investment. What is the BEST way to communicate this to the client?", opts:["Hold a series of separate meetings: issues, then solutions, then impact.","Send a report and request a meeting after they've reviewed it.","Prepare a report and meet with the client to present issues, solutions, and business impact together.","Schedule a meeting with department heads to discuss the problems."], a:2},
+{cat:"tech", q:"A company's data center is being relocated. Who should be hired to ensure the new location is properly prepared when equipment arrives?", opts:["An HVAC consultant experienced with renovations.","The vendor providing the computer equipment.","An electrical engineer with industry experience.","A consultant experienced in relocating data centers."], a:3},
+{cat:"tech", q:"After completing a renovation of an older building wing, what should the FM do prior to occupancy to remove pollutants from new finishes?", opts:["Adjust the HVAC.","Run the building's A/C for a legally required period.","Bring 100% fresh air into the area (flush-out).","Repaint the walls with low-VOC paint only."], a:2},
+{cat:"tech", q:"What is one of the MOST common reasons implementing a CMMS fails?", opts:["Users are resistant to change.","The board members are not interested in the system.","The CMMS is home-grown.","The building systems are not compatible with the CMMS."], a:0},
+{cat:"tech", q:"The acronym LEED stands for which of the following?", opts:["Leading Environmental Equivalent Discipline","Leadership in Eco-Friendly Engineered Domiciles","Lasting Environmental Enhancement Decisions","Leadership in Energy and Environmental Design"], a:3},
+{cat:"tech", q:"What system would best help a facility manager compare space temperatures, outside air conditions, and equipment capabilities?", opts:["Integrated Workplace Management System (IWMS)","Building Automation System (BAS)","Computer Aided Facility Management (CAFM)","Building Information Modeling (BIM)"], a:1},
+{cat:"tech", q:"You need to recommend a workplace technology that will best mitigate the risk of operational downtime. What do you recommend?", opts:["Technical Support System (TSS)","Building Automation System (BAS)","Incident Management System (IMS)","Computer Aided Facility Management System (CAFM)"], a:3},
+{cat:"tech", q:"Your new CAFM system requires a thorough asset inventory, but budget won't allow a comprehensive effort. What provides the largest return on investment?", opts:["Inventory using bar code technology","Inventory moveable items","Inventory large investment items first","Inventory corporate assets"], a:2},
+{cat:"tech", q:"A leak is detected in a ceiling with water damage in a BIM-modeled building. What information can be gleaned from BIM to address this?", opts:["Flow rate","Time the water line/valve was installed","Location of all water lines","Type and style of valves installed"], a:2},
+{cat:"tech", q:"Building information modeling (BIM) is best defined as:", opts:["A schedule of information about a building held by the facility department.","An object-based digital representation of the physical and functional characteristics of a facility.","A computer-aided design (CAD) representation of a building.","A physical scale model used to assist in design and construction."], a:1},
+{cat:"tech", q:"A rooftop HVAC unit is likely to fail within 6 months. Four replacement units have comparable reliability/performance. Using a 5-year planning horizon, which should be purchased?", opts:["Unit A – quickest on site, useful life over 5 years.","Unit B – lowest initial cost.","Unit C – fastest delivery, efficient operating cost, longest expected life combined.","Unit D – highest quality for a mission-critical facility."], a:2},
+{cat:"tech", q:"Among these, which is the LEAST critical success criterion for a robust facility automation program?", opts:["Enhance workforce productivity","Creation of a paperless system","Reduce maintenance failures","Improve customer satisfaction"], a:1},
+{cat:"tech", q:"The key difficulty in the evolution of integrated BAS has historically been:", opts:["Low demand due to initial expense","Protocols have been brand specific","Integration is too complex in large facilities","Large amounts of data storage are necessary"], a:1},
+{cat:"tech", q:"When planning the build-out of a new computer/data facility, the primary consideration for the FM should be:", opts:["Layout of the space to accommodate equipment and operators","Equipment loads required for electrical and HVAC operation","Adjacencies to other IT organizations","Strategic plans for IT systems over the next three years"], a:1},
+{cat:"tech", q:"When using a CAFM to manage building equipment and personal property, the key aspect of the module is:", opts:["Bar code readers and their software flexibility","Tracking tax basis and depreciation","Ability to issue requisitions for approval","Updating records on a real-time basis"], a:0},
+{cat:"tech", q:"In developing a strong partnership with the IT department, what is the facility manager's top priority?", opts:["Both IT and FM are support activities to the organization's main mission.","Cooperation with IT is essential due to overlapping functions.","Improving productivity, since IT promotes productivity gains.","A sound, functional automated network is a primary FM function."], a:0},
+{cat:"tech", q:"What is a computerized maintenance management system (CMMS) primarily used for?", opts:["Managing marketing campaigns for the facility","Effective and efficient management of maintenance activities (work orders, PM scheduling, inventory)","Replacing the need for an IWMS","Only tracking employee attendance"], a:1},
+{cat:"tech", q:"What can a computer-aided facility management (CAFM) system incorporate beyond CMMS functionality?", opts:["Payroll processing","Space planning, energy management, and asset management","Only HVAC scheduling","Vehicle fleet dispatch"], a:1},
+{cat:"tech", q:"Failure Mode & Effect Analysis (FMEA) is mainly based on calculating which three factors?", opts:["Cost, Schedule, Quality","Failure Impact, Failure Likelihood, Failure Detection","Uptime, Downtime, MTTR","Labor, Materials, Overhead"], a:1},
+{cat:"tech", q:"In software as a service (SaaS), where does the application reside?", opts:["On the user's local system only","At a remote location, not on the user's system","On a private, air-gapped server","It has no fixed location"], a:1},
+{cat:"tech", q:"What are manufacturer-created gateways that allow a controller from one manufacturer to communicate with another manufacturer's devices called?", opts:["Firewalls","Middleware","Routers","Protocol stacks"], a:1},
+{cat:"tech", q:"What does VoIP stand for and do?", opts:["Voice over Internet Protocol – transmits both voice and data traffic","Video over Internal Platform – streams security video","Voltage over Isolated Path – manages electrical loads","Virtual Office Internet Portal – remote work tool"], a:0},
+{cat:"tech", q:"A Wide Area Network (WAN) is best described as:", opts:["A single local network within one building","Two or more LANs that span a relatively large geographic area","A private network used only for security cameras","A backup power distribution network"], a:1},
+{cat:"tech", q:"A Virtual Private Network (VPN) is:", opts:["An expensive dedicated fiber line","A private, usually encrypted network configured within a public network like the Internet","A type of building automation protocol","A cloud storage service"], a:1},
+{cat:"tech", q:"Which tools are commonly used in a Failure Root Cause Analysis (FRCA)?", opts:["Fault Tree Analysis, Fishbone Diagram, Five Whys Method","SWOT and PEST analysis","Gantt charts and critical path method","Balanced Scorecard"], a:0},
+{cat:"tech", q:"A renewable energy certificate (REC) represents:", opts:["A tax credit for HVAC upgrades","The environmental value of power generated from renewable energy sources","A discount on utility bills","A LEED certification requirement"], a:1},
+{cat:"tech", q:"What is the purpose of the Global Reporting Initiative (GRI) framework?", opts:["To certify green building materials","To standardize how organizations report the outcomes of their sustainability plans","To regulate international energy prices","To manage workplace safety training"], a:1},
+{cat:"tech", q:"Job Safety Analysis (JSA) procedures are used to:", opts:["Track employee vacation time","Analyze hazards/unsafe conditions before performing tasks to prevent incidents","Calculate payroll for hazardous duty","Certify contractors financially"], a:1},
+{cat:"tech", q:"Material Safety Data Sheets (MSDS) generally provide information on:", opts:["Vendor pricing history","Properties, uses, handling, and health aspects of chemicals/substances in a facility","Building floor plans","Employee training records"], a:1},
+{cat:"tech", q:"Reliability-Centered Maintenance (RCM) is best described as:", opts:["A maintenance philosophy optimizing reliability and availability at the lowest cost","A rule requiring all equipment be replaced every 5 years","A vendor certification program","A type of insurance policy"], a:0},
+{cat:"tech", q:"Which AIDC technology uses radio waves to automatically locate animate and inanimate objects?", opts:["1D barcode","2D barcode","RFID (Radio Frequency Identification)","QR code only"], a:2},
+{cat:"tech", q:"Geospatial Information Systems (GIS) data includes which three types?", opts:["Vector, Raster, Attribute data","Analog, Digital, Hybrid data","Primary, Secondary, Tertiary data","Static, Dynamic, Cached data"], a:0},
+{cat:"tech", q:"3D imaging systems typically require multiple setups because:", opts:["Light doesn't penetrate surfaces, so scanning from different angles is needed","The equipment is too heavy to move once positioned","Buildings are always symmetrical","Only exterior surfaces can be scanned"], a:0},
+
+/* ---------------- BSC & KPIs ---------------- */
+{cat:"bsckpi", q:"What is the correct order for strategic facility planning?", opts:["Strategic purpose, strategic planning, business unit planning, tactical planning, execution, measurement, feedback","Strategic purpose, business unit planning, strategic planning level, measurement, execution, feedback, tactical planning","Tactical planning, business unit planning, execution, measurement, feedback, strategic planning, strategic purpose","Business unit planning, tactical planning, execution, measurement, feedback, strategic purpose, strategic planning"], a:0},
+{cat:"bsckpi", q:"Your FM company wants to demonstrate commitment to continuous improvement to a bank client. What is the best way to show this?", opts:["Find out what other banks do about continuous improvement.","Write to the bank stating your commitment.","Include indicators relating to continuous improvement in the service level agreement.","Ask the bank to submit a list of requirements."], a:2},
+{cat:"bsckpi", q:"What is one of the perspectives used by an organization when developing a Balanced Scorecard?", opts:["Financial","Management style","Market trends","Real estate strategic plan"], a:0},
+{cat:"bsckpi", q:"When writing Key Performance Indicators (KPIs) for a Service Level Agreement, what key characteristic should you consider?", opts:["The KPIs must be tied to the budget.","The KPIs must be easily attainable.","The KPIs must measure all outcomes equally.","The KPIs must be clear and understandable."], a:3},
+{cat:"bsckpi", q:"When managing quality, what are Key Performance Indicators (KPIs) based on?", opts:["What stakeholders feel is important","What the facility manager feels is important","What the facility management team feels is important","What the CEO feels is important"], a:0},
+{cat:"bsckpi", q:"What mechanism should be used to evaluate the work of an outsourced property management contract?", opts:["Create a checklist in the scope of work.","Describe the expected performance of the contract.","Clearly identify Key Performance Indicators.","Rely on the contractor's self-reporting."], a:2},
+{cat:"bsckpi", q:"What should the FM department do in the ongoing monitoring of a newly outsourced Property Management contract?", opts:["Explain the evaluation methodology based on identified KPIs.","Include an opportunity for the contractor to respond to non-compliances.","Ensure all codes and regulations are met.","Create an incentive program for innovative work."], a:0},
+{cat:"bsckpi", q:"What factors are included in the SMART approach to developing KPIs?", opts:["Systematic, measurable, achievable, reliable, time-bound.","Specific, measurable, achievable, rational, time-bound.","Specific, measurable, achievable, relevant, time-bound.","Systematic, measurable, achievable, related, time-bound."], a:2},
+{cat:"bsckpi", q:"You provide integrated FM services across mixed-use sites. What is an effective way to track your client's evolving needs?", opts:["Direct facility staff to share feedback they informally receive.","Meet with your client regularly to report results and identify emerging needs.","Meet only with department heads for suggestions.","Wait for the client to raise concerns."], a:1},
+{cat:"bsckpi", q:"What should Key Performance Indicators (KPIs) for a project primarily focus on?", opts:["Total project cost.","Critical success factors.","On-time delivery only.","Contractor headcount."], a:1},
+{cat:"bsckpi", q:"If KPIs tell the facility manager what to measure as goals, then the Balanced Scorecard (BSC) indicates:", opts:["How to bring it together by positioning goal requirements relative to the strategic facility plan.","Where to trim costs or personnel to improve profitability.","Whether O&M costs will rise or not.","Whether to award work to staff or contractors."], a:0},
+{cat:"bsckpi", q:"In a typical approach to facility management, which represents the most crucial/highest summary of business metrics?", opts:["Strategic facility plan","Key performance indicators (KPIs)","Work log reports","Work process flow schedules"], a:1},
+{cat:"bsckpi", q:"A metric that helps assess progress toward successful completion of a relocation is an example of a(n):", opts:["Best practice","Service specification","Benchmark","Key performance indicator (KPI)"], a:3},
+{cat:"bsckpi", q:"How are KPIs related to Critical Success Factors (CSFs)?", opts:["KPIs help define strategies based on best practices to fulfill CSFs.","KPIs are embedded in service specifications; CSFs are part of the SLA.","KPIs are tied to budget goals; CSFs assess performance for strategic goals.","KPIs enable management to understand, measure, and control progress in each of the CSFs."], a:3},
+{cat:"bsckpi", q:"A key performance indicator (KPI), implemented and sustained properly, will:", opts:["Improve the bottom-line performance of the entire organization only.", "Foster an environment of improved performance, employee motivation, and continuous improvement.","Reduce the need for tracking and periodic reporting.","Facilitate information sharing with executives only."], a:1},
+{cat:"bsckpi", q:"What is the typical relationship of the CMMS relative to the Balanced Scorecard (BSC)?", opts:["The CMMS indicates which systems to replace relative to the BSC.","The BSC automates the inputs of the CMMS.","There is no direct relationship between CMMS and BSC.","The CMMS compiles work log results to support KPIs reflected in the BSC."], a:3},
+{cat:"bsckpi", q:"What are the four perspectives of a classic Balanced Scorecard?", opts:["Financial, Customer, Internal Process, Learning & Growth","Financial, Legal, Marketing, Operations","Strategic, Tactical, Operational, Financial","Quality, Cost, Delivery, Safety"], a:0},
+
+/* ---------------- REAL ESTATE ---------------- */
+{cat:"re", q:"What are the five stages of the Real Estate/Business life-cycle?", opts:["Start up, Growth, Maturity, Decline, Revival and Diversification","Plan, Build, Occupy, Maintain, Dispose","Introduction, Growth, Maturity, Decline","Lease, Own, Sublease, Terminate, Renew"], a:0},
+{cat:"re", q:"During the Start Up stage, an organization is most likely to:", opts:["Purchase large amounts of strategic real estate","Opt for a short-term real estate lease due to limited resources","Build a corporate campus","Enter a 25-year ground lease"], a:1},
+{cat:"re", q:"During the Growth stage, an organization is most likely to:", opts:["Divest all real estate to raise cash","Acquire real estate to meet growth and expected maturity needs","Stop all facility investment","Convert all owned property to leased space"], a:1},
+{cat:"re", q:"During the Maturity stage, why is it important that an organization not overinvest in facilities?", opts:["Because leases are always cheaper than owning","Because the organization must not invest more in the facility than business activities require","Because maturity means the company is closing","Because tax law forbids capital investment at maturity"], a:1},
+{cat:"re", q:"During which organization life-cycle stage would an organization tend to be MOST risk-averse in real estate decisions?", opts:["Start Up","Growth","Maturity","Revival and Diversification"], a:2},
+{cat:"re", q:"During the Decline stage, if the downturn is long-term, an organization may need to:", opts:["Immediately purchase more real estate","Consolidate its operations, including real estate, to reduce costs","Ignore real estate entirely","Convert all leases to ground leases"], a:1},
+{cat:"re", q:"What are the four phases of a strategy life-cycle model referenced for real estate planning?", opts:["Understand, analyze, plan, and act","Initiate, plan, execute, and close","Introduction, growth, maturity, and decline","Plan, do, check, and act"], a:3},
+{cat:"re", q:"Life-cycle costing (LCC) is best defined as:", opts:["Only the initial purchase price of a structure","The process of determining, in present-value terms, all costs incident to planning, design, construction, operation/maintenance, and disposition over time","A tax accounting method for depreciation only","A method for calculating employee benefits"], a:1},
+{cat:"re", q:"When the economy is contracting, an organization is most likely to:", opts:["Aggressively purchase new real estate","Not renew leases, defer maintenance, and consider divesting owned real estate","Undertake major capital improvements","Sign new long-term ground leases"], a:1},
+{cat:"re", q:"When the economy is expanding, an organization is most likely to:", opts:["Look for additional real estate through purchase, lease, or new construction","Sublease all its space immediately","Defer all maintenance","Avoid any capital improvements"], a:0},
+{cat:"re", q:"In the real estate neighborhood life-cycle, which phase is considered the Peak Value/Performance period?", opts:["Phase 1 – New development","Phase 2 – Mature and fully developed, value maximized","Phase 3 – Value/Decline","Phase 4 – Least Value/Renewal"], a:1},
+{cat:"re", q:"Which is a common advantage of PURCHASING real estate rather than leasing?", opts:["No large up-front investment required","Property is an asset that can appreciate over time, with tax benefits from depreciation","Easier to respond to changing needs","Payments are always fully tax-deductible"], a:1},
+{cat:"re", q:"Which is a common advantage of LEASING real estate rather than purchasing?", opts:["Owned property provides a buffer during inflation","Leasing makes it easier for organizations to respond to changing needs and requires less up-front capital","Leasing always has lower life-cycle costs","Leasing allows depreciation write-offs"], a:1},
+{cat:"re", q:"A ground lease is best described as:", opts:["A short-term lease (under 1 year) of a fully built office","A long-term lease (10–25 years or longer) of land only","A lease that includes furniture and equipment","A lease that automatically converts to ownership after 5 years"], a:1},
+{cat:"re", q:"In a \"build to suit\" arrangement, the organization:", opts:["Owns the property immediately","Desires not to own property, but pays the property owner rent to cover investment, then leases the property (often 5–15+ years)","Sells the property to a third party immediately after construction","Uses a month-to-month lease only"], a:1},
+{cat:"re", q:"What is the basic distinction between a gross lease and a triple net lease?", opts:["Whether the landlord or tenant pays all the usual operating costs","The percentage of incentives for sustainable choices","How often the lease is renewed","The size of the security deposit"], a:0},
+{cat:"re", q:"What kind of lease includes the base rent PLUS the tenant pays a share of real estate taxes only?", opts:["Net lease (Single Net Lease)","Double-net lease","Triple-net lease","Gross lease"], a:0},
+{cat:"re", q:"What kind of lease includes the base rent, plus a share of real estate taxes, PLUS insurance?", opts:["Net lease","Double-net lease","Triple-net lease","Gross lease"], a:1},
+{cat:"re", q:"What kind of lease includes the base rent, plus taxes, plus insurance, PLUS maintenance/repairs/operating expenses?", opts:["Gross lease","Double-net lease","Triple-net lease","Cost lease"], a:2},
+{cat:"re", q:"In a Gross Lease, who covers the operating expenses?", opts:["The tenant pays all operating expenses separately","The landlord covers all operating expenses; the tenant pays one fixed rent","Expenses are split 50/50 automatically","There are no operating expenses in a gross lease"], a:1},
+{cat:"re", q:"A cost lease (pass-through lease) is best described as:", opts:["A lease where the tenant pays a fixed base rent plus actual operating expenses incurred (taxes, insurance, maintenance)","A lease with absolutely no additional charges beyond rent","A lease exclusive to government tenants","A lease that only applies to industrial warehouses"], a:0},
+{cat:"re", q:"A percentage lease, common in retail properties, requires the tenant to pay:", opts:["Only a fixed base rent","A base rent plus a percentage of their gross sales","Only a percentage of gross sales, no base rent","A one-time buyout fee instead of rent"], a:1},
+{cat:"re", q:"What is space programming?", opts:["Determining needs for the amount and configuration of a known physical space based on user roles and business unit needs.","Managing real estate property and related rights, structures, and beyond.","Planning for a type/quantity of space for organizational flexibility.","Organizing known workgroup functions to optimize space use."], a:0},
+{cat:"re", q:"What is the most important driver of building performance for profitability?", opts:["Effective organizational leadership.","Efficient use of space.","Effective business forecasting.","Location, location, location."], a:1},
+{cat:"re", q:"What are the 3 steps to the space programming process?", opts:["Input gathering, processing, and output creation.","Forecasting, needs identification, and goal setting.","Forecasting, space planning, and floor plan creation.","Goal setting, data gathering, and needs identification."], a:3},
+{cat:"re", q:"An adjacency diagram is used to:", opts:["Document critical physical proximities of organizational groups, equipment, or support functions","Show the vertical stacking of departments across floors","Calculate the total cost of ownership","Track lease expiration dates"], a:0},
+{cat:"re", q:"A stack diagram (stack plan) shows:", opts:["A single floor's furniture layout","A vertical section through a building showing which organizational groups occupy which floors","The HVAC ductwork layout","The electrical panel schedule"], a:1},
+{cat:"re", q:"A block diagram (blocking plan) illustrates:", opts:["How multiple groups/departments will fit onto a given floor of a building","The plumbing riser diagram","The building's structural steel layout","The parking garage traffic flow"], a:0},
+{cat:"re", q:"Swing space is best defined as:", opts:["Permanent office space for senior executives","Space available to temporarily house functions/departments during renovations, alterations, and realignments","Outdoor recreational space","Storage space for retired furniture only"], a:1},
+{cat:"re", q:"A lease buyout refers to:", opts:["An agreement where a tenant's lease is given up for the rest of its term, initiated by landlord, tenant, or a third party","A clause that automatically renews a lease","A penalty charged only to tenants who sublease","A government subsidy for commercial leases"], a:0},
+{cat:"re", q:"Subletting and assignment provisions, when allowed under a lease, permit a tenant to:", opts:["Automatically terminate the lease with no penalty","Get out of a lease or permit someone else to use the space, with landlord approval","Convert the lease into a purchase agreement","Ignore remaining lease payments"], a:1},
+{cat:"re", q:"Which of the following is a common driver of property divestiture?", opts:["Workforce reduction/downsizing, mergers/acquisitions, or obsolete products/services","Consistently rising property values only","Winning a new large client contract","Achieving LEED certification"], a:0},
+{cat:"re", q:"Which portfolio management tool outlines how to manage a successful cleaning organization?", opts:["ASTM Whole Building Functionality standards","ISSA CIMS (Cleaning Industry Management Standard)","ISO 14001","GRI framework"], a:1},
+{cat:"re", q:"CPTED (Crime Prevention Through Environmental Design) includes which four principles?", opts:["Natural Surveillance, Natural Access Control, Territorial Reinforcement, Maintenance","Lighting, Fencing, Cameras, Guards","Locks, Alarms, Patrols, Signage","Landscaping, Parking, Access Badges, Visitor Logs"], a:0},
+{cat:"re", q:"The goal of Space Management is to:", opts:["Maximize the number of private offices","Make effective use of an organization's space, aligning user needs with business plan, culture, cost efficiency, and standards","Eliminate all shared/collaborative space","Always convert to open-plan seating"], a:1},
+{cat:"re", q:"A facility master plan (real estate master plan / campus plan) is:", opts:["A one-page memo with no schedule","A detailed long- or mid-term set of specifications and schedule for implementing elements of a strategic facility plan, often containing scenarios","A daily maintenance checklist","A financial audit report"], a:1},
+{cat:"re", q:"Total Cost of Ownership (TCO) analysis is useful because it:", opts:["Only reflects the initial purchase price","Helps organizations understand the true cost of owning an asset over its entire lifespan, not just the purchase price","Applies only to leased assets","Ignores maintenance and disposal costs"], a:1},
+{cat:"re", q:"Due diligence in real estate refers to:", opts:["Signing a lease as quickly as possible","Inspection and investigation of a property and surrounding area before committing to purchase, lease, or acquisition","A post-occupancy satisfaction survey","A government inspection required only for industrial sites"], a:1},
+
+/* ---------------- FCI / LOTO / ISO / SWOT / LCC ---------------- */
+{cat:"ops", q:"How is the Facility Condition Index (FCI) determined?", opts:["Dividing the cost of deficiencies by the facility replacement value.","Subtracting the facility replacement value by the cost of deficiencies.","Dividing the facility replacement value by the cost of deficiencies.","Multiplying the cost of deficiencies by the facility replacement value."], a:0},
+{cat:"ops", q:"An organization acquires a firm with an 88-acre, 14-building campus. Which factor has the GREATEST impact on the FCI assessment?", opts:["Utility distribution.","Real estate value.","Building openings.","Deferred maintenance costs."], a:3},
+{cat:"ops", q:"Given cost of deficiencies = $110,000 and current replacement value = $4,100,000, what is the FCI?", opts:["2.68%","2.26%","3.73%","4.51%"], a:0},
+{cat:"ops", q:"When are Lockout/Tagout (LOTO) procedures considered complete?", opts:["When an employer develops and implements a written energy control program.","When the electrical cable is securely placed in a cabinet.","When authorized employees have received proper training.","When equipment is isolated from its energy source and appropriate records are completed."], a:3},
+{cat:"ops", q:"The ISO 31000:2009 risk management standard defines risk as:", opts:["Any hazard present in a building","The effect of uncertainty upon objectives","A financial liability only","The probability of a natural disaster"], a:1},
+{cat:"ops", q:"What are the three main steps of the Risk Management Process per ISO 31000?", opts:["Identify/assess risks; identify critical assets and analyze impact; develop a risk management strategy","Insure, litigate, remediate","Plan, do, check, act","Audit, report, penalize"], a:0},
+{cat:"ops", q:"What series of ISO standards defines the requirements of an environmental management system (EMS) an organization can use to measure and document its environmental impact?", opts:["ISO 14001","ISO 14021","ISO 14025","ISO 14024"], a:0},
+{cat:"ops", q:"ISO 14021 deals specifically with:", opts:["Full EMS certification","Self-declared environmental claims (not a full EMS)","Social responsibility guidance","Risk management"], a:1},
+{cat:"ops", q:"ISO 14024 pertains to:", opts:["Environmental labeling programs","Quality management in projects","Energy management systems","Occupational health and safety"], a:0},
+{cat:"ops", q:"ISO 14025 pertains to:", opts:["Environmental labeling and declarations","Social responsibility","Building sustainability principles","Cleaning industry management"], a:0},
+{cat:"ops", q:"Which ISO standard provides guidance on social responsibility?", opts:["ISO 15392","ISO 14001","ISO 21930","ISO 26000"], a:3},
+{cat:"ops", q:"What is the significance of achieving ISO 14001 certification?", opts:["It provides principles for Type III environmental declarations of building products.","It establishes general sustainability principles for building construction.","It indicates that an organization has fulfilled the requirements for an environmental management system.","It provides guidance on social responsibility terms and definitions."], a:2},
+{cat:"ops", q:"ISO 41001 and EN 15221-3 highlight that facility service quality should be measured based on:", opts:["Customer feedback, performance metrics, and compliance with SLAs","Only the number of complaints received","Employee headcount alone","Building age only"], a:0},
+{cat:"ops", q:"A SWOT analysis arranges data on an organization's current state into which four categories?", opts:["Strengths, Weaknesses, Opportunities, Threats","Strategy, Workforce, Operations, Technology","Speed, Waste, Ownership, Timing","Sales, Warranty, Overhead, Tax"], a:0},
+{cat:"ops", q:"Which of the following is TRUE of a SWOT analysis?", opts:["Opportunities can become threats if poorly managed.","Strengths and weaknesses are derived from environmental scanning.","Strengths and weaknesses refer to external advantages and disadvantages.","Opportunities and threats are derived from strategic or macro programming."], a:0},
+{cat:"ops", q:"After assembling inputs and producing mission/vision statements, what is the FIRST step in aligning FM strategy to the organization's strategy?", opts:["Perform a SWOT analysis","Define what constitutes success in strategic planning","Produce vendor-client profiles or business goals","Organize and compile comprehensive data"], a:0},
+{cat:"ops", q:"As VP of Facilities, you compare your team's performance against other similarly sized companies. What type of analysis is this?", opts:["GAP Analysis","SWOT Analysis","Benchmarking","Sensitivity Analysis"], a:2},
+{cat:"ops", q:"Life-cycle costing (LCC) is a measurement of:", opts:["Only the acquisition cost of an asset","The total cost of ownership over the life of an asset, indicating when replacement may be more suitable than repair","The resale value of an asset only","The insurance premium for an asset"], a:1},
+{cat:"ops", q:"Total Cost of Ownership (TCO) analysis is most useful for indicating:", opts:["The tax basis of an asset","The payback period","The exact resale date","The warranty expiration date"], a:1},
+{cat:"ops", q:"Sensitivity analysis is best described as:", opts:["A \"what-if\" technique evaluating how NPV, IRR, or other indicators change if one variable (discount rate, labor, materials, sales) changes","A tool that accounts for instantaneous, real-time risks","A decision rule for automatically accepting/rejecting projects","A method to calculate depreciation only"], a:0},
+{cat:"ops", q:"Scenario analysis differs from sensitivity analysis in that it:", opts:["Measures the impact of simultaneous changes across multiple variables, reflecting a range of outcomes via probability distribution","Only looks at one variable at a time","Cannot be used for capital projects","Is identical to sensitivity analysis"], a:0},
+
+/* ---------------- FINANCE & BUDGETING ---------------- */
+{cat:"fin", q:"\"Cost of Ownership\" for a building includes which of the following?", opts:["Only the mortgage principal","The cost of servicing debt, return on equity, capital improvements, maintenance/repair, operations, and disposal","Only property taxes","Only the initial purchase price"], a:1},
+{cat:"fin", q:"Intangible assets are best described as assets that:", opts:["Have physical substance but low value","Have no physical substance, such as patents, trademarks, copyrights, goodwill, and brand recognition","Are always fully depreciated within one year","Only include real estate holdings"], a:1},
+{cat:"fin", q:"Internal Rate of Return (IRR) is best defined as:", opts:["The interest rate at which lifetime money savings equal lifetime money costs, after considering the time value of money","A fixed government-mandated rate","The rate a bank charges on a mortgage","The inflation rate only"], a:0},
+{cat:"fin", q:"In an Authoritative (Top-Down) budgeting approach, a key disadvantage is:", opts:["Budget goals may not reflect strategic objectives","It dictates instead of communicates, potentially leaving employees feeling uninvolved/unmotivated","It always results in budget padding","It takes longer than bottom-up budgeting"], a:1},
+{cat:"fin", q:"In a Participative (Bottom-Up) budgeting approach, a key disadvantage is:", opts:["Strategic goals may not receive priority, and budgets may be padded","Employees feel completely uninvolved","It never reflects departmental expertise","It cannot be combined with top-down elements"], a:0},
+{cat:"fin", q:"A Combined (Two-way Communication) budgeting approach's main disadvantage is:", opts:["It ignores strategic goals entirely","Control is retained and expertise gained, but at the cost of a slightly longer process","It cannot be implemented bottom-up","It always increases costs"], a:1},
+{cat:"fin", q:"Incremental budgeting is best described as:", opts:["Starting from zero every year","Starting with the current year's budget as a baseline and adjusting each line item for expected changes","Allocating budget based solely on activities, ignoring history","A method used only by non-profits"], a:1},
+{cat:"fin", q:"Zero-based budgeting (ZBB) focuses on:", opts:["Using last year's budget without question","A critical review of every assumption and cost justification for all proposed expenditures, regardless of prior budgets","Only capital expenditures","Employee headcount forecasting"], a:1},
+{cat:"fin", q:"Activity-based budgeting (ABB) is most useful for:", opts:["Identifying value-added vs. non-value-added activities to reduce costs and eliminate waste","Simplifying payroll only","Avoiding the need for any cost tracking","Setting fixed rent amounts"], a:0},
+{cat:"fin", q:"Which of the following budgets makes a clear connection between resource consumption and output?", opts:["Short term cash forecasts","Continuous (rolling) budgeting","Activity based budgeting (ABB)","Financial scorecard metrics"], a:2},
+{cat:"fin", q:"The process of creating a formal plan and translating goals into a quantitative format describes:", opts:["Activity based costing","Job order costing","A business case","Budgeting"], a:3},
+{cat:"fin", q:"Which budgeting technique is most likely to engage and motivate managers and employees?", opts:["Incremental budgeting","Zero-based budgeting","Bottom-up budgeting","Top-down budgeting"], a:2},
+{cat:"fin", q:"Internal financial statements are typically produced:", opts:["Once every 5 years","On a regular basis (usually monthly), made available to whom-it-may-concern","Only when requested by shareholders","Only after an audit"], a:1},
+{cat:"fin", q:"An 'Unqualified' audit opinion means:", opts:["The auditor determines the financial statement accuracy is sound (subjective opinion of accuracy)","There is a material problem with the statements","The auditor refuses to issue any opinion","The company is bankrupt"], a:0},
+{cat:"fin", q:"A 'Qualified' audit opinion means:", opts:["Everything is perfect","The auditor determines there is a material problem with the financial statement accuracy","The auditor loves the company","No opinion was issued"], a:1},
+{cat:"fin", q:"A 'Disclaimer' audit opinion indicates:", opts:["The financial statements are fully reliable","The auditor declines to issue an opinion, indicating statements are unreliable/unpredictable — requiring the org to review and retool its financial records","A routine annual formality","Nothing unusual"], a:1},
+{cat:"fin", q:"The Statement of Cash Flow:", opts:["Indicates how income was spent for a full year only","Is the same as the balance sheet and income statement","Indicates where income came from and how it was used","Cannot include notes or supplemental information"], a:2},
+{cat:"fin", q:"The risk analysis technique for single projects that measures the change in one variable as a result of a change in another variable is:", opts:["Scenario analysis","Sensitivity analysis","Forecasting","Monte Carlo simulation"], a:1},
+{cat:"fin", q:"The amount of money, today, that an investment earns after yielding the desired rate of return for each period during its life describes:", opts:["Net present value","Payback period","Present value","Internal rate of return"], a:0},
+{cat:"fin", q:"Opportunity costs are best described as:", opts:["Money already spent that cannot be recovered","The potential benefits sacrificed when choosing one alternative over other possibilities","Only costs related to real estate","A synonym for sunk costs"], a:1},
+{cat:"fin", q:"Sunk costs should be:", opts:["Heavily weighted in every investment decision","Ignored in investment decisions because they are historical and not relevant going forward","Doubled before making a decision","Added to the opportunity cost"], a:1},
+{cat:"fin", q:"The fundamental criterion for choosing between job order costing and process costing is:", opts:["Number of cost pools used for indirect costs","Type of cost pools assigned","The nature and amount of the service provided to customers","Proportion of direct costs expended"], a:2},
+{cat:"fin", q:"The cost of renting an office for a specified lease period is an example of a(n):", opts:["Relevant cost","Fixed cost","Mixed cost","Direct cost"], a:1},
+{cat:"fin", q:"Return on Investment (ROI) is calculated as:", opts:["Net income / Cost of investment x 100","Total revenue / Total assets","Gross profit / Net sales","Cash flow / Total liabilities"], a:0},
+{cat:"fin", q:"Return on Assets (ROA) is calculated as:", opts:["Net Income / Average Total Assets","Net Income / Total Liabilities","Gross Revenue / Total Assets","Total Assets / Net Income"], a:0},
+{cat:"fin", q:"Cost containment strategies primarily involve:", opts:["Increasing spending to boost output","Maintaining organizational costs within budget by controlling/reducing expenditures or their growth rate","Eliminating all budgets entirely","Outsourcing every function regardless of cost"], a:1},
+{cat:"fin", q:"A chargeback system allows facility management to:", opts:["Charge its services to another internal group requesting them","Bill external customers only","Avoid all internal cost allocation","Eliminate the need for a budget"], a:0},
+{cat:"fin", q:"An important premise when using a chargeback system for FM services provided to internal clients is:", opts:["Fee structure should be based on negotiations with external suppliers","Services to be charged back are adequately communicated and agreed to in advance","The approach should maximize FM profits above all else","No dispute resolution provisions are needed"], a:1},
+{cat:"fin", q:"A facility manager restrains expenditures to meet projected financial targets for preventive maintenance. This exemplifies:", opts:["Management by metrics","Continuous improvement","Best practice","Cost containment"], a:3},
+
+/* ---------------- PROCUREMENT & CONTRACTS ---------------- */
+{cat:"proc", q:"Procurement is best defined as:", opts:["The specific buying activity or placing of orders under a contract","The systematic process by which an organization reaches formal agreements for the purchase/supply of goods and/or services","A synonym for purchasing with no distinction","Only the invoice payment step"], a:1},
+{cat:"proc", q:"Purchasing (as distinct from procurement) is best defined as:", opts:["The specific buying activity or placing of orders under the umbrella of a procured contract","The entire strategic sourcing process","Contract dispute resolution","Vendor qualification and vetting"], a:0},
+{cat:"proc", q:"A Request for Proposal (RFP) is used to:", opts:["Request a technology, innovation, or other related proposal from prospective suppliers","Only request a price quote when specs are already fully known","Formally cancel a contract","Notify a vendor of a payment"], a:0},
+{cat:"proc", q:"A Request for Quotation (RFQ) is used when:", opts:["The specifications are unknown and creativity is needed","The specifications of scope are already known and price is the determining factor","Only one supplier exists","The project has no budget"], a:1},
+{cat:"proc", q:"An Invitation to Tender (ITT) is best described as:", opts:["A procedure for generating competing offers from different bidders for works, supply, or service contracts","A private negotiation with a single vendor","A post-award performance review","A finance department budget request"], a:0},
+{cat:"proc", q:"In a Fixed Price (Lump Sum) contract, who bears the risk for performance costs and resulting profit/loss?", opts:["The client bears all risk","The contractor has full responsibility for performance costs and resulting profit (or loss)","Risk is always split 50/50","There is no risk in fixed price contracts"], a:1},
+{cat:"proc", q:"Cost Reimbursement (Variable Price) contracts are most appropriate when:", opts:["Performance is entirely predictable and low-risk","Performance uncertainties will not permit an accurate fixed price estimate, ensuring a fair/reasonable price","The client wants to place all risk on the contractor","The project has a very small budget"], a:1},
+{cat:"proc", q:"National buy contracts are best described as:", opts:["One-time emergency purchases only","Specialized procurement contracts for large organizations providing favorable below-retail costs in exchange for an extended sole-source agreement","Contracts limited to government agencies only","Contracts that cannot be renewed"], a:1},
+{cat:"proc", q:"An open book contract is best described as:", opts:["A contract with no pricing terms at all","One where the cost of delivery is passed through in the price, with an agreed profit margin on top","A contract that is publicly posted online","A verbal-only agreement"], a:1},
+{cat:"proc", q:"A labor hour/time and materials contract pays:", opts:["A single lump sum regardless of hours worked","Fixed rates for services rendered plus materials at cost plus a handling fee","Only for materials, labor is free","A flat annual retainer only"], a:1},
+{cat:"proc", q:"Which of the following statements accurately describes best practice in the procurement process?", opts:["Open bidding always takes less time than single-source procurement.","Actions should be based on conformance with all applicable laws and regulations.","Paper-based procurement has less collusion risk than e-enabled tools.","Larger suppliers merit preferred status during screening."], a:1},
+{cat:"proc", q:"Who has the primary responsibility for defining technical specifications and outsourcing services for a restoration/waterproofing project?", opts:["The facility manager","Finance and legal personnel","Prospective suppliers","Procurement department alone"], a:0},
+{cat:"proc", q:"Which is a potential advantage of having FM outsource a project?", opts:["Confidentiality is more easily maintained internally","It may lead to fresh ideas and best practices from outside expertise","It automatically increases FM's span of authority","Staff morale always increases"], a:1},
+{cat:"proc", q:"Which service best exemplifies \"out-tasking\" a specific function in FM procurement?", opts:["Janitorial service","Full move management program","Enterprise-wide mail/messenger/reprographics program","Marketing and leasing of properties"], a:0},
+{cat:"proc", q:"Office supplies purchased throughout the fiscal year against an agreement limited only by a cumulative monetary value describes a:", opts:["Prescriptive contract","General conditions contract","Blanket purchase order (BPO)","One-time purchase order"], a:2},
+{cat:"proc", q:"Which contract type establishes an estimate of total cost for obligating funds and a ceiling the contractor may not exceed without client approval?", opts:["Time and materials","Cost reimbursement","Fixed price","Incentive"], a:1},
+{cat:"proc", q:"Special tools are purchased once with no recurring need. What contracting mechanism should be used?", opts:["National buy contract","Blanket purchase order","One-time purchase order","Fixed type contract"], a:2},
+{cat:"proc", q:"In which contract type is the incentive for the contractor to control costs very high, but the contractor bears significant risk?", opts:["Cost-plus-fixed-fee","Fixed price","Time and materials","Cost reimbursement"], a:1},
+{cat:"proc", q:"During contract negotiations, a decision-maker receiving a thing of value for the sole purpose of influencing the award decision describes:", opts:["Price fixing","Collusion","Price falsification","Bid rigging"], a:1},
+{cat:"proc", q:"A Service Level Agreement (SLA) typically includes which elements?", opts:["Scope of services, quality/performance targets, pricing, meetings, incentives/penalties, dispute resolution","Only the contractor's insurance certificate","Only the total contract value","Employee resumes of the contractor's staff"], a:0},
+{cat:"proc", q:"What is the primary distinction between a prescriptive service specification and a performance specification?", opts:["Prescriptive are described in detail in a contract; performance are in a statement of work","Prescriptive are based on specific inputs; performance are focused on outputs","Prescriptive set flexible quality targets; performance focus on task inputs","Prescriptive have financial targets; performance use operational metrics"], a:1},
+{cat:"proc", q:"A contract states: \"Grassy areas shall appear well groomed and not exceed 7.6 cm/3 in height.\" This wording is a(n):", opts:["Service level agreement","Service protocol","Performance specification","External standard"], a:2},
+{cat:"proc", q:"Organizations measure contract risk primarily in terms of:", opts:["Uncertainty alone","Potential alone","Opportunity alone","Impact"], a:3},
+{cat:"proc", q:"Which contract type typically solicits multiple bids and tries to move ALL risk to the contractor?", opts:["Cost reimbursement","Fixed price","Open book","Time and materials"], a:1},
+{cat:"proc", q:"Which action is associated with the 'risk acceptance' response strategy?", opts:["Put controls in place to mitigate negative impact (this is mitigation, not acceptance)","Bind service providers contractually (this is transfer)","Abandon the risky activity (this is avoidance)","Establish contingency plans"], a:3},
+{cat:"proc", q:"A contract clause states any dispute over $10,000 but less than $50,000 shall go to mediation followed by binding arbitration by a single arbitrator. This describes:", opts:["Binding mediation and arbitration with graduated processes","Mediation settlement with graduated processes only","Arbitration award with graduated processes only","None of the above"], a:0},
+{cat:"proc", q:"Submission of a dispute to one or more qualified, impartial experts for a final and binding decision exemplifies:", opts:["Mediation","Graduated mediation","Arbitration","Management escalation"], a:2},
+{cat:"proc", q:"Mediation, as an Alternative Dispute Resolution (ADR) method, is:", opts:["Always legally binding with no facilitator","A voluntary settlement process with the help of a skilled facilitator, which can be binding or non-binding","Only used for disputes over $1 million","A synonym for litigation"], a:1},
+{cat:"proc", q:"To be deemed valid, a contract typically requires which elements?", opts:["Mutual agreement, consideration, competent parties, proper subject matter, mutual right to remedy, agreement to enter the contract","Only a signature from both parties","A notarized seal only","Government registration only"], a:0},
+{cat:"proc", q:"A Prescriptive Contract is best characterized as:", opts:["Focused purely on measurable outputs with contractor flexibility","Outlining exact specifications/acceptable ranges, less flexible, with little contractor incentive beyond what's specified","Only used for IT contracts","A contract with no defined scope"], a:1},
+{cat:"proc", q:"A Performance Contract is best characterized as:", opts:["Describing expected results while leaving flexibility for the vendor on how to achieve them, offering potential cost efficiencies","Dictating the exact process the contractor must follow","Only usable for one-time purchases","Always more expensive than prescriptive contracts"], a:0},
+{cat:"proc", q:"Which of the following are common fraud indicators in procurement?", opts:["Many providers with highly differentiated products","Few providers, little product differentiation, standardized/repetitive purchases, and strong ties between competitors","Open, competitive bidding with many new entrants","Frequent supplier turnover"], a:1},
+];
+
+/* ============================== APP STATE ============================== */
+const LS_KEY = "cfmTrainerProgress_v1";
+let progress = loadProgress();
+let session = null; // {mode, list:[...], idx, correctCount, answered:[]}
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { wrong:{}, seen:{}, history:[] };
+}
+function saveProgress(){ localStorage.setItem(LS_KEY, JSON.stringify(progress)); }
+
+// assign stable ids
+QUESTIONS.forEach((q,i)=>{ q.id = "q"+i; });
+
+/* ============================== SETUP UI ============================== */
+const catListEl = document.getElementById('catList');
+const selectedCats = new Set(Object.keys(CATS));
+
+function renderCatList(){
+  catListEl.innerHTML = "";
+  Object.entries(CATS).forEach(([key,label])=>{
+    const count = QUESTIONS.filter(q=>q.cat===key).length;
+    const div = document.createElement('div');
+    div.className = 'cat';
+    div.innerHTML = `<input type="checkbox" ${selectedCats.has(key)?'checked':''} data-cat="${key}">
+      <span>${label}</span><span class="n">${count}</span>`;
+    div.querySelector('input').addEventListener('change', e=>{
+      if(e.target.checked) selectedCats.add(key); else selectedCats.delete(key);
+    });
+    div.addEventListener('click', e=>{
+      if(e.target.tagName!=='INPUT'){
+        const cb = div.querySelector('input');
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+      }
+    });
+    catListEl.appendChild(div);
+  });
+}
+renderCatList();
+
+function toggleAllCats(state){
+  selectedCats.clear();
+  if(state) Object.keys(CATS).forEach(k=>selectedCats.add(k));
+  renderCatList();
+}
+
+let currentMode = 'training';
+function selectMode(mode){
+  currentMode = mode;
+  document.getElementById('modeTraining').classList.toggle('active', mode==='training');
+  document.getElementById('modeExam').classList.toggle('active', mode==='exam');
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startSession(){
+  let pool = QUESTIONS.filter(q=>selectedCats.has(q.cat));
+  if(pool.length===0){ alert("Pick at least one topic first."); return; }
+
+  const focusWeak = document.getElementById('focusWeak').checked;
+  if(focusWeak){
+    pool = pool.slice().sort((a,b)=>(progress.wrong[b.id]||0)-(progress.wrong[a.id]||0));
+  } else if(document.getElementById('qOrder').value==='shuffle'){
+    pool = shuffle(pool);
+  }
+
+  const count = parseInt(document.getElementById('qCount').value,10);
+  const list = pool.slice(0, Math.min(count, pool.length));
+
+  session = { mode: currentMode, list, idx:0, correctCount:0, answered:[] };
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function backToSetup(){ showScreen('setup'); }
+
+function showScreen(name){
+  ['setup','stats','quiz','results'].forEach(s=>{
+    document.getElementById('screen'+cap(s)).classList.toggle('hidden', s!==name);
+  });
+  document.getElementById('headerBadge').textContent =
+    name==='quiz' ? (session.mode==='training'?'Training':'Exam') :
+    name==='results' ? 'Results' : name==='stats' ? 'Stats' : 'Setup';
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+/* ============================== QUIZ FLOW ============================== */
+function renderQuestion(){
+  const q = session.list[session.idx];
+  document.getElementById('qIndexLabel').textContent = `Question ${session.idx+1}/${session.list.length}`;
+  document.getElementById('qScoreLabel').textContent = `Score: ${session.correctCount}/${session.idx}`;
+  document.getElementById('progressFill').style.width = (session.idx/session.list.length*100)+'%';
+  document.getElementById('qCatTag').textContent = CATS[q.cat];
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qFeedback').innerHTML = '';
+  document.getElementById('nextBtn').classList.add('hidden');
+
+  const optsEl = document.getElementById('qOptions');
+  optsEl.innerHTML = '';
+  const labels = ['A','B','C','D','E'];
+  q.opts.forEach((opt,i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = `<span class="lab">${labels[i]}.</span>${escapeHtml(opt)}`;
+    b.onclick = ()=>answerQuestion(i);
+    optsEl.appendChild(b);
+  });
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function answerQuestion(choiceIdx){
+  const q = session.list[session.idx];
+  const optsEl = document.getElementById('qOptions');
+  const buttons = optsEl.querySelectorAll('.opt');
+  const isCorrect = choiceIdx === q.a;
+
+  buttons.forEach((b,i)=>{
+    b.classList.add('disabled');
+    b.onclick = null;
+    if(i===q.a) b.classList.add('correct');
+    if(i===choiceIdx && !isCorrect) b.classList.add('wrong');
+  });
+
+  progress.seen[q.id] = (progress.seen[q.id]||0)+1;
+  if(!isCorrect) progress.wrong[q.id] = (progress.wrong[q.id]||0)+1;
+  else if(progress.wrong[q.id]) progress.wrong[q.id] = Math.max(0, progress.wrong[q.id]-1);
+  saveProgress();
+
+  if(isCorrect) session.correctCount++;
+  session.answered.push({id:q.id, q:q.q, opts:q.opts, correctIdx:q.a, chosenIdx:choiceIdx, correct:isCorrect});
+
+  document.getElementById('qScoreLabel').textContent = `Score: ${session.correctCount}/${session.idx+1}`;
+
+  if(session.mode==='training'){
+    const fb = document.getElementById('qFeedback');
+    fb.innerHTML = `<div class="feedback ${isCorrect?'good':'bad'}">
+      ${isCorrect ? '✅ Correct!' : '❌ Not quite.'} The correct answer is <strong>${['A','B','C','D','E'][q.a]}. ${escapeHtml(q.opts[q.a])}</strong>
+    </div>`;
+  }
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+function nextQuestion(){
+  session.idx++;
+  if(session.idx >= session.list.length){
+    finishSession();
+  } else {
+    renderQuestion();
+  }
+}
+
+function quitSession(){
+  if(session.answered.length===0){ backToSetup(); return; }
+  if(confirm("Quit this session? Your partial results will be shown.")) finishSession();
+}
+
+function finishSession(){
+  const total = session.answered.length;
+  const correct = session.answered.filter(a=>a.correct).length;
+  const pct = total ? Math.round(correct/total*100) : 0;
+
+  progress.history.push({date: new Date().toISOString(), mode: session.mode, correct, total, pct});
+  saveProgress();
+
+  document.getElementById('resultScore').textContent = pct+'%';
+  document.getElementById('resultSub').textContent = `You got ${correct} of ${total} correct`;
+
+  const reviewEl = document.getElementById('reviewList');
+  reviewEl.innerHTML = '';
+  const labels = ['A','B','C','D','E'];
+  session.answered.forEach(a=>{
+    const div = document.createElement('div');
+    div.className = 'reviewitem';
+    const chosenLine = a.correct
+      ? `<span class="ans right">✔ You answered: ${labels[a.chosenIdx]}. ${escapeHtml(a.opts[a.chosenIdx])}</span>`
+      : `<span class="ans wrong">✘ You answered: ${labels[a.chosenIdx]}. ${escapeHtml(a.opts[a.chosenIdx])}</span><br>
+         <span class="ans right">✔ Correct: ${labels[a.correctIdx]}. ${escapeHtml(a.opts[a.correctIdx])}</span>`;
+    div.innerHTML = `<div class="q">${escapeHtml(a.q)}</div><div class="ans">${chosenLine}</div>`;
+    reviewEl.appendChild(div);
+  });
+
+  showScreen('results');
+}
+
+/* ============================== STATS ============================== */
+function showStats(){
+  const body = document.getElementById('statsBody');
+  const totalSeen = Object.keys(progress.seen).length;
+  const totalWrongNow = Object.values(progress.wrong).filter(v=>v>0).length;
+  const sessionsRun = progress.history.length;
+  const avgPct = sessionsRun ? Math.round(progress.history.reduce((s,h)=>s+h.pct,0)/sessionsRun) : 0;
+
+  let html = '';
+  html += statRow('Sessions completed', sessionsRun);
+  html += statRow('Average score', avgPct+'%');
+  html += statRow('Unique questions seen', totalSeen + ' / ' + QUESTIONS.length);
+  html += statRow('Questions currently marked weak', totalWrongNow);
+
+  if(sessionsRun){
+    html += '<div style="margin-top:14px;font-size:.85rem;color:var(--muted);">Recent sessions</div>';
+    progress.history.slice(-8).reverse().forEach(h=>{
+      const d = new Date(h.date);
+      html += statRow(d.toLocaleDateString()+' '+d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + ' · '+(h.mode==='training'?'Training':'Exam'), `${h.correct}/${h.total} (${h.pct}%)`);
+    });
+  }
+  body.innerHTML = html;
+  showScreen('stats');
+}
+function statRow(label,val){
+  return `<div class="statrow"><span>${label}</span><strong>${val}</strong></div>`;
+}
+function resetStats(){
+  if(confirm("This will erase all saved progress and stats on this device. Continue?")){
+    progress = { wrong:{}, seen:{}, history:[] };
+    saveProgress();
+    showStats();
+  }
+}
+</script>
+</body>
+</html>
